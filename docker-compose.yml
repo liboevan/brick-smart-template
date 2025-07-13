@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  cleaner:
+    image: brick-smart-cleaner:latest
+    ports:
+      - "17101:17101"
+    environment:
+      - HTTP_PORT=17101
+    networks:
+      - smart-network
+
+  lighting:
+    image: brick-smart-lighting:latest
+    ports:
+      - "17102:17102"
+    environment:
+      - HTTP_PORT=17102
+    networks:
+      - smart-network
+
+  thermostat:
+    image: brick-smart-thermostat:latest
+    ports:
+      - "17103:17103"
+    environment:
+      - HTTP_PORT=17103
+    networks:
+      - smart-network
+
+networks:
+  smart-network:
+    driver: bridge 
