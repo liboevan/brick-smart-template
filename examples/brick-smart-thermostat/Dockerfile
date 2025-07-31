@@ -1,5 +1,5 @@
 # 基于proxy镜像
-FROM el/brick-smart-template:latest AS proxy
+FROM brick-smart-template:latest AS proxy
 
 # 构建阶段
 FROM golang:1.21-alpine AS builder
@@ -39,4 +39,4 @@ COPY --from=builder /app/thermostat ./
 RUN mkdir -p /app/logs
 
 # 运行 proxy
-ENTRYPOINT ["./app-proxy"] 
+ENTRYPOINT ["./app-proxy"]

@@ -1,17 +1,23 @@
 # Brick Smart Template
 
-> 中文版请见: [README.md](README.md)
+> Chinese version: [README.md](README.md)
 
-This is a project for concept and technical validation and practice, using the construction and management of smart device proxies and example applications as a case, and is not intended for any real-world production use.
+This is a template project for building and managing smart device proxies and example applications, focusing on rapid prototyping and educational demonstrations for IoT and smart home scenarios. This project does not include production environment functionality and is intended for proof-of-concept and technical practice only.
 
 ## Project Overview
 
-Brick Smart Template provides unified build, run, test, and clean scripts for a smart device proxy (proxy) and multiple example devices (cleaner, lighting, thermostat, etc.), suitable for IoT, smart home prototyping, and educational demos.
+Brick Smart Template provides unified build, run, test, and clean scripts for a smart device proxy and multiple example devices (cleaner, lighting, thermostat, etc.).
 
-- **One-click build & run**: Quickly build, start, and clean all services via Makefile and scripts.
-- **Multiple device examples**: Built-in simulation for cleaner, lighting, thermostat, and more.
-- **Docker support**: All services can be containerized for consistent local/cloud environments.
-- **Comprehensive docs**: Bilingual documentation, including device and test guides.
+- **One-click build & run**: Quickly build, start, and clean all services via Makefile and scripts
+- **Multiple device examples**: Built-in simulation for cleaner, lighting, thermostat, and other smart devices
+- **Docker support**: All services can be containerized to ensure environment consistency
+
+## System Architecture
+
+### Core Components
+- **brick-proxy**: Smart device proxy that manages device connections and communication
+- **Device examples**: Simulated implementations of various smart devices (cleaner, lighting, etc.)
+- **Traefik reverse proxy**: Centralized service access management
 
 ## Directory Structure
 
@@ -22,8 +28,12 @@ brick-smart-template/
 ├── docker-compose.yml      # Multi-service orchestration
 ├── scripts/                # Build/run/test/clean scripts
 ├── examples/               # Example device code
-├── docs/                   # Detailed docs (device, test, etc.)
-└── README.md/README.en.md  # Project overview (CN/EN)
+│   ├── brick-smart-cleaner/
+│   ├── brick-smart-lighting/
+│   └── brick-smart-thermostat/
+├── docs/                   # Detailed documentation
+├── README.md               # Project overview (Chinese)
+└── README.en.md            # Project overview (English)
 ```
 
 ## Quick Start
@@ -37,9 +47,10 @@ make clean      # Clean all containers and images
 
 ## Key Documentation
 
-- [Device Doc: cleaner](docs/cleaner.md)
-- [Test Guide (EN)](docs/test.md)
-- [中文说明](README.md)
+Detailed documentation for device examples can be found in the README of each example project:
+- [Cleaner Example](examples/brick-smart-cleaner/README.md)
+- [Lighting Example](examples/brick-smart-lighting/README.md)
+- [Thermostat Example](examples/brick-smart-thermostat/README.md)
 
 ## Use Cases
 
@@ -48,4 +59,27 @@ make clean      # Clean all containers and images
 - Education & demonstration
 - Unified management & automation for multiple devices
 
-For detailed test methods and API flows, see docs/test.md. 
+## Traefik Reverse Proxy Configuration
+
+This project uses Traefik as a reverse proxy to centrally manage access to all services.
+
+### Key Features
+- Automatic Docker container service discovery
+- Service differentiation through path prefixes
+- Automatic path prefix stripping without modifying service code
+
+### Service Access Method
+All services are accessed through Traefik's port 17111 using the following URL format:
+```
+http://localhost:17111/<service-name>/<api-endpoint>
+```
+
+### Example
+Accessing the cleaner service's health API:
+```
+http://localhost:17111/brick-cleaner/health
+```
+
+### Configuration Notes
+- Traefik configuration file: `scripts/start_traefik.sh`
+- Service registration is implemented through Docker labels, see the `run_container` function in `scripts/run.sh`

@@ -30,13 +30,13 @@ log_warning() {
 get_container_image() {
     case $1 in
         cleaner)
-            echo "brick-cleaner el/brick-smart-cleaner"
+            echo "brick-cleaner brick-smart-cleaner"
             ;;
         thermostat)
-            echo "brick-thermostat el/brick-smart-thermostat"
+            echo "brick-thermostat brick-smart-thermostat"
             ;;
         lighting)
-            echo "brick-lighting el/brick-smart-lighting"
+            echo "brick-lighting brick-smart-lighting"
             ;;
         *)
             ;;
@@ -148,4 +148,4 @@ case "${1:-}" in
         ;;
 esac
 
-log_success "Clean operation completed." 
+log_success "Clean operation completed."

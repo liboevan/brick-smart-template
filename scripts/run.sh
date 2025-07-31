@@ -53,6 +53,7 @@ run_container() {
     local image=$1
     local container_name=$2
     local port=$3
+    local enable_traefik=${4:-false}
     
     log_info "Starting $container_name on port $port..."
     
@@ -60,7 +61,17 @@ run_container() {
     stop_container $container_name
     
     # 运行新容器，参数用单横线
-    if docker run -d --name $container_name -p $port:$port $image -id $container_name -http-port $port; then
+    if docker run -d \
+      --name $container_name \
+      -p $port:$port \
+      ${enable_traefik:+
+      --label "traefik.enable=true" \
+      --label "traefik.http.routers.$container_name.rule=PathPrefix(\"/$container_name\")" \
+      --label "traefik.http.services.$container_name.loadbalancer.server.port=$port" \
+      --label "traefik.http.middlewares.strip-$container_name.stripprefix.prefixes=/$container_name" \
+      --label "traefik.http.routers.$container_name.middlewares=strip-$container_name@docker" \
+      } \
+      $image -id $container_name -http-port $port; then
         log_success "$container_name started successfully on port $port"
         return 0
     else
@@ -112,22 +123,25 @@ main() {
     fi
     
     log_info "Starting containers..."
+
+    log_info "Starting application containers..."
     
     # 检查镜像
-    check_image "el/brick-smart-cleaner" || exit 1
-    check_image "el/brick-smart-thermostat" || exit 1
-    check_image "el/brick-smart-lighting" || exit 1
+    check_image "brick-smart-cleaner" || exit 1
+    #check_image "brick-smart-thermostat" || exit 1
+    #check_image "brick-smart-lighting" || exit 1
     
     # 运行所有容器
-    run_container "el/brick-smart-cleaner" "brick-cleaner" "17101"
-    run_container "el/brick-smart-thermostat" "brick-thermostat" "17103"
-    run_container "el/brick-smart-lighting" "brick-lighting" "17102"
+    run_container "brick-smart-cleaner" "brick-cleaner" "17101" true
+    # 暂时禁用其他容器
+    # run_container "brick-smart-thermostat" "brick-thermostat" "17103" false
+    # run_container "brick-smart-lighting" "brick-lighting" "17102" false
     
     # 等待服务启动
     log_info "Waiting for all services to start..."
     wait_for_service 17101 "cleaner"
-    wait_for_service 17102 "lighting"
-    wait_for_service 17103 "thermostat"
+    # wait_for_service 17102 "lighting"
+    # wait_for_service 17103 "thermostat"
     
     echo ""
     echo "=========================================="
@@ -136,18 +150,18 @@ main() {
     echo ""
     echo "Running containers:"
     echo "  - brick-cleaner     (port 17101)"
-    echo "  - brick-thermostat  (port 17103)"
-    echo "  - brick-lighting    (port 17102)"
+    # echo "  - brick-thermostat  (port 17103)"
+    # echo "  - brick-lighting    (port 17102)"
     echo ""
     echo "Service URLs:"
     echo "  Cleaner:     http://localhost:17101"
-    echo "  Lighting:    http://localhost:17102"
-    echo "  Thermostat:  http://localhost:17103"
+    # echo "  Lighting:    http://localhost:17102"
+    # echo "  Thermostat:  http://localhost:17103"
     echo ""
     echo "To check status:"
     echo "  curl http://localhost:17101/app/status"
-    echo "  curl http://localhost:17102/app/status"
-    echo "  curl http://localhost:17103/app/status"
+    # echo "  curl http://localhost:17102/app/status"
+    # echo "  curl http://localhost:17103/app/status"
     echo ""
     echo "To stop all containers:"
     echo "  ./scripts/stop-all.sh"
@@ -188,32 +202,32 @@ case "${1:-}" in
         main
         ;;
     cleaner)
-        check_image "el/brick-smart-cleaner" || exit 1
-        run_container "el/brick-smart-cleaner" "brick-cleaner" "17101"
+        check_image "brick-smart-cleaner" || exit 1
+        run_container "brick-smart-cleaner" "brick-cleaner" "17101"
         wait_for_service 17101 "cleaner"
         echo ""
         log_success "Cleaner container started on port 17101"
         exit 0
         ;;
     thermostat)
-        check_image "el/brick-smart-thermostat" || exit 1
-        run_container "el/brick-smart-thermostat" "brick-thermostat" "17103"
-        wait_for_service 17103 "thermostat"
-        echo ""
-        log_success "Thermostat container started on port 17103"
-        exit 0
+        # check_image "brick-smart-thermostat" || exit 1
+        # run_container "brick-smart-thermostat" "brick-thermostat" "17103" false
+        # wait_for_service 17103 "thermostat"
+        # echo ""
+        # log_success "Thermostat container started on port 17103"
+        # exit 0
         ;;
     lighting)
-        check_image "el/brick-smart-lighting" || exit 1
-        run_container "el/brick-smart-lighting" "brick-lighting" "17102"
-        wait_for_service 17102 "lighting"
-        echo ""
-        log_success "Lighting container started on port 17102"
-        exit 0
+        # check_image "brick-smart-lighting" || exit 1
+        # run_container "brick-smart-lighting" "brick-lighting" "17102" false
+        # wait_for_service 17102 "lighting"
+        # echo ""
+        # log_success "Lighting container started on port 17102"
+        # exit 0
         ;;
     *)
         log_error "Unknown option: $1"
         show_help
         exit 1
         ;;
-esac 
+esac
